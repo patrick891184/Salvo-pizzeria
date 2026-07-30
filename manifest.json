@@ -1,0 +1,15 @@
+{
+  "name": "Salvo Pizzeria",
+  "short_name": "Pizzeria",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#d32f2f",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/3132/3132693.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
