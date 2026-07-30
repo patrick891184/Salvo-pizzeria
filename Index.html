@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salvo Pizzeria</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#d32f2f">
+    <style>
+        * { box-sizing: border-box; font-family: sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f4f4f9; padding-bottom: 80px; }
+        header { background-color: #d32f2f; color: white; text-align: center; padding: 1rem; position: sticky; top: 0; }
+        .container { padding: 1rem; max-width: 600px; margin: 0 auto; }
+        .card { background: white; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .price { font-weight: bold; color: #d32f2f; }
+        .btn-add { background: #d32f2f; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-qty { background: #eee; border: none; padding: 0.4rem 0.8rem; border-radius: 3px; font-weight: bold; }
+        .cart-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 1rem; box-shadow: 0 -2px 10px rgba(0,0,0,0.15); display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto; }
+        .btn-order { background: #25D366; color: white; border: none; padding: 0.8rem 1.2rem; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <header><h1>Salvo Pizzeria</h1></header>
+    <div class="container" id="menu"></div>
+    <div class="cart-bar" id="cartBar" style="display: none;">
+        <div><span>Totale: </span><strong id="cartTotal" class="price">€0.00</strong></div>
+        <button class="btn-order" onclick="inviaOrdine()">Invia Ordine (WhatsApp)</button>
+    </div>
+    <script>
+        const menuData = [
+            { id: 1, nome: "Margherita", desc: "Pomodoro, Mozzarella, Basilico", prezzo: 6.00 },
+            { id: 2, nome: "Diavola", desc: "Pomodoro, Mozzarella, Salame Piccante", prezzo: 7.50 },
+            { id: 3, nome: "Capricciosa", desc: "Pomodoro, Mozzarella, Funghi, Prosciutto", prezzo: 8.50 },
+            { id: 4, nome: "Quattro Formaggi", desc: "Mozzarella, Gorgonzola, Fontina", prezzo: 8.00 }
+        ];
+        let carrello = {};
+        function renderMenu() {
+            const menuContainer = document.getElementById('menu');
+            menuContainer.innerHTML = '';
+            menuData.forEach(item => {
+                const qty = carrello[item.id] || 0;
+                menuContainer.innerHTML += `
+                    <div class="card">
+                        <div>
+                            <h3>${item.nome}</h3>
+                            <p>${item.desc}</p>
+                            <span class="price">€${item.prezzo.toFixed(2)}</span>
+                        </div>
+                        <div>
+                            ${qty === 0 ? 
+                                `<button class="btn-add" onclick="modificaQta(${item.id}, 1)">Aggiungi</button>` :
+                                `<button class="btn-qty" onclick="modificaQta(${item.id}, -1)">-</button>
+                                 <span style="margin:0 8px;">${qty}</span>
+                                 <button class="btn-qty" onclick="modificaQta(${item.id}, 1)">+</button>`
+                            }
+                        </div>
+                    </div>`;
+            });
+            aggiornaCarrello();
+        }
+        function modificaQta(id, delta) {
+            carrello[id] = (carrello[id] || 0) + delta;
+            if (carrello[id] <= 0) delete carrello[id];
+            renderMenu();
+        }
+        function aggiornaCarrello() {
+            let totale = 0; let haArticoli = false;
+            for (let id in carrello) {
+                const item = menuData.find(m => m.id == id);
+                totale += item.prezzo * carrello[id];
+                haArticoli = true;
+            }
+            document.getElementById('cartTotal').innerText = `€${totale.toFixed(2)}`;
+            document.getElementById('cartBar').style.display = haArticoli ? 'flex' : 'none';
+        }
+        function inviaOrdine() {
+            let testo = "Ciao Salvo Pizzeria! Vorrei ordinare:%0A";
+            let totale = 0;
+            for (let id in carrello) {
+                const item = menuData.find(m => m.id == id);
+                const subtotale = item.prezzo * carrello[id];
+                totale += subtotale;
+                testo += `- ${carrello[id]}x ${item.nome} (€${subtotale.toFixed(2)})%0A`;
+            }
+            testo += `%0ATotale: €${totale.toFixed(2)}`;
+            window.open(`https://wa.me/393331122333?text=${testo}`, '_blank');
+        }
+        renderMenu();
+        if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+    </script>
+</body>
+</html>
